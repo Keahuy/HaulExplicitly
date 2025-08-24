@@ -1,18 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-#if HARMONY_1_2
-using Harmony;
-#elif HARMONY_2
-using HarmonyLib;
-#endif
-using Verse;
+﻿using Verse;
 using Verse.AI;
 using System.Reflection;
+using HarmonyLib;
 using RimWorld;
 
 namespace HaulExplicitly
 {
+    [StaticConstructorOnStartup]
+    public class PatchMain
+    {
+        public static Harmony instance;
+
+        static PatchMain()
+        {
+            instance = new Harmony("likeafox.rimworld.haulexplicitly");
+            instance.PatchAll(Assembly.GetExecutingAssembly()); 
+        }
+        
+        public static void DoPatching()
+        {
+            var harmony = new Harmony("likeafox.rimworld.haulexplicitly");
+            harmony.PatchAll();
+        }
+    }
+
     [HarmonyPatch(typeof(GridsUtility), "GetFirstHaulable")]
     class GridsUtility_GetFirstHaulable_Patch
     {
@@ -25,6 +36,7 @@ namespace HaulExplicitly
                     __result = list[i];
                     return;
                 }
+
             __result = null;
         }
     }
@@ -45,6 +57,7 @@ namespace HaulExplicitly
                     JobFailReason.Is("ForbiddenLower".Translate(), null);
                 return false;
             }
+
             __result = Verse.AI.HaulAIUtility.PawnCanAutomaticallyHaulFast(p, t, forced);
             return false;
         }
@@ -86,11 +99,11 @@ namespace HaulExplicitly
         static bool Prefix(Thing t, ListerHaulables __instance)
         {
             bool shouldhave = t.SpawnedOrAnyParentSpawned &&
-                __instance.ShouldBeHaulableExt(t, true);
+                              __instance.ShouldBeHaulableExt(t, true);
             List<Thing> haulables =
                 (List<Thing>)typeof(ListerHaulables).InvokeMember("haulables",
-                BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
-                null, __instance, null);
+                    BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, __instance, null);
 
             if (shouldhave != haulables.Contains(t))
             {
@@ -99,6 +112,7 @@ namespace HaulExplicitly
                 else
                     haulables.Remove(t);
             }
+
             return false;
         }
     }
@@ -136,7 +150,7 @@ namespace HaulExplicitly
         {
             if (value || warnOnFail) return true;
             return (HaulPatchState.last_des_type_try_add != DesignationDefOf.Haul ||
-                MiscUtil.StackFrameWithMethod("AddDesignation") == null);
+                    MiscUtil.StackFrameWithMethod("AddDesignation") == null);
         }
     }
 
@@ -159,6 +173,7 @@ namespace HaulExplicitly
                     .Notify_ThingStackChanged(__instance.target.Thing);
         }
     }
+
     [HarmonyPatch(typeof(Designation), "Notify_Removing")]
     class Designation_Notify_Removing_Patch
     {
@@ -180,24 +195,25 @@ namespace HaulExplicitly
             {
                 List<Toil> toils =
                     (List<Toil>)typeof(JobDriver).InvokeMember("toils",
-                    BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
-                    null, __instance, null);
+                        BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
+                        null, __instance, null);
                 Toil toilGoto = toils[
 #if !RW_1_4_OR_GREATER
-                        1
+                    1
 #elif RW_1_4
                         3
 #elif RW_1_5
                         4
 #endif
-                    ];
+                ];
                 if (toilGoto.defaultCompleteMode != ToilCompleteMode.PatherArrival)
                 {
                     Log.Error("Trying to add fail condition on JobDriver_HaulToCell but "
-                        + toilGoto.ToString()
-                        + " doesn't appear to be a Goto Toil");
+                              + toilGoto.ToString()
+                              + " doesn't appear to be a Goto Toil");
                     return;
                 }
+
                 toilGoto.AddFailCondition(delegate
                 {
                     Thing t = __instance.job.targetA.Thing;
@@ -294,5 +310,4 @@ namespace HaulExplicitly
         }
     }
 #endif
-
 }

@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using HarmonyLib;
 using UnityEngine;
-#if HARMONY_1_2
-using Harmony;
-#elif HARMONY_2
-using HarmonyLib;
-#endif
 using Verse;
 
 namespace HaulExplicitly
@@ -14,7 +8,10 @@ namespace HaulExplicitly
     {
         private static List<int> postings_drawn_this_frame = new List<int>();
 
-        private static float alt { get { return AltitudeLayer.MetaOverlays.AltitudeFor(); } }
+        private static float alt
+        {
+            get { return AltitudeLayer.MetaOverlays.AltitudeFor(); }
+        }
 
         public static void DrawForItem(Thing item)
         {

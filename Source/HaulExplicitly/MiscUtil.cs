@@ -1,13 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Reflection;
-using System.Linq;
-using StackFrame = System.Diagnostics.StackFrame;
-#if HARMONY_1_2
-using Harmony;
-#elif HARMONY_2
+﻿using System.Reflection;
 using HarmonyLib;
-#endif
+using StackFrame = System.Diagnostics.StackFrame;
 using UnityEngine;
 using Verse;
 
@@ -28,28 +21,36 @@ namespace HaulExplicitly
                 if (description.Contains(str))
                     return sf;
             }
+
             return null;
         }
 
         private static Dictionary<string, Material> mats = new Dictionary<string, Material>();
+
         public static Material GetMoreMaterials(string path)
         {
             try
             {
                 return mats[path];
             }
-            catch { }
+            catch
+            {
+            }
+
             return mats[path] = MaterialPool.MatFrom(path, ShaderDatabase.MetaOverlay);
         }
 
         private static Assembly _HarmonyAssembly = null;
-        public static Assembly HarmonyAssembly {
+
+        public static Assembly HarmonyAssembly
+        {
             get
             {
                 if (_HarmonyAssembly == null)
                 {
                     _HarmonyAssembly = Assembly.Load("0Harmony");
                 }
+
                 return _HarmonyAssembly;
             }
         }

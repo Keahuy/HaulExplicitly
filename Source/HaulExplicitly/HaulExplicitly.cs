@@ -1,41 +1,33 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+﻿using System.Reflection;
 using Verse;
 using RimWorld;
 
 namespace HaulExplicitly
 {
-    public class Mod : Verse.Mod
-    {
-        public Mod(ModContentPack content) : base(content)
-        {
-#if HARMONY_1_2
-            var harmony = Harmony.HarmonyInstance.Create("likeafox.rimworld.haulexplicitly");
-#elif HARMONY_2
-            var harmony = new HarmonyLib.Harmony("likeafox.rimworld.haulexplicitly");
-#endif
-            harmony.PatchAll(Assembly.GetExecutingAssembly());
-        }
-    }
-
     public class HaulExplicitly : GameComponent
     {
+        public HaulExplicitly()
+        {
+            _instance = this;
+        }
+
         //data
-        private Dictionary<int, HaulExplicitlyJobManager> managers = new Dictionary<int, HaulExplicitlyJobManager>();
-        private HashSet<Zone_Stockpile> retainingZones = new HashSet<Zone_Stockpile>();
+
+        private Dictionary<int, HaulExplicitlyJobManager> managers = new();
+
+        private HashSet<Zone_Stockpile> retainingZones = new();
 
         //volatile data
-        private static HaulExplicitly _instance;
+
+        private static HaulExplicitly? _instance;
+
         private static HaulExplicitly GetInstance()
         {
-            if (_instance == null)
-                throw new NullReferenceException("HaulExplicitly is not instantiated yet.");
-            return _instance;
+            return _instance ?? throw new NullReferenceException("HaulExplicitly is not instantiated yet.");
         }
 
         //interfaces
+
         public override void ExposeData()
         {
             base.ExposeData();
@@ -54,8 +46,8 @@ namespace HaulExplicitly
 
             //regular saving/loading
             Scribe_Collections.Look(ref managers, "managers",
-                LookMode.Value, LookMode.Deep//, ref mapIdsScribe, ref managersScribe
-                );
+                LookMode.Value, LookMode.Deep //, ref mapIdsScribe, ref managersScribe
+            );
             Scribe_Collections.Look(ref retainingZones, "holdingZones", LookMode.Reference);
 
             //hopefully this will allow at least some limited recovery from this issue:
@@ -67,8 +59,9 @@ namespace HaulExplicitly
             }
         }
 
-        public HaulExplicitly(Game game) : this() { }
-        public HaulExplicitly() { _instance = this; }
+        public HaulExplicitly(Game game) : this()
+        {
+        }
 
         public static void CleanGarbage()
         {
@@ -81,9 +74,9 @@ namespace HaulExplicitly
                 mgr.CleanGarbage();
             var all_zones = new List<Zone_Stockpile>();
             foreach (Map map in Find.Maps)
-                foreach (var zone in map.zoneManager.AllZones)
-                    if (zone is Zone_Stockpile)
-                        all_zones.Add(zone as Zone_Stockpile);
+            foreach (var zone in map.zoneManager.AllZones)
+                if (zone is Zone_Stockpile)
+                    all_zones.Add(zone as Zone_Stockpile);
             self.retainingZones.IntersectWith(all_zones);
         }
 
@@ -92,16 +85,16 @@ namespace HaulExplicitly
             var self = GetInstance();
             int max = -1;
             foreach (var mgr in self.managers.Values)
-                foreach (var posting in mgr.postings.Values)
-                    if (posting.id > max)
-                        max = posting.id;
+            foreach (var posting in mgr.postings.Values)
+                if (posting.id > max)
+                    max = posting.id;
             return max + 1;
         }
 
         public static HaulExplicitlyJobManager GetManager(Map map)
         {
             var self = GetInstance();
-            HaulExplicitlyJobManager r = self.managers.TryGetValue(map.uniqueID);
+            var r = self.managers.TryGetValue(map.uniqueID);
             if (r != null)
                 return r;
             var mgr = new HaulExplicitlyJobManager(map);
@@ -120,18 +113,7 @@ namespace HaulExplicitly
 
         public static HaulExplicitlyJobManager GetManager(Thing t)
         {
-#if RW_1_4_OR_GREATER
-            if (t is Verse.Pawn)
-            {
-                return GetManager(t.Map);
-            }
-            else
-            {
-                return GetManager(t.MapHeld);
-            }
-#else
             return GetManager(t.Map);
-#endif
         }
 
         public static List<HaulExplicitlyJobManager> GetManagers()
@@ -155,8 +137,9 @@ namespace HaulExplicitly
                 foreach (var p2 in manager.postings.Values)
                     p2.TryRemoveItem(i);
             }
+
             if (manager.postings.Keys.Contains(posting.id))
-                throw new ArgumentException("Posting ID "+posting.id+" already exists in this manager.");
+                throw new ArgumentException("Posting ID " + posting.id + " already exists in this manager.");
             manager.postings[posting.id] = posting;
         }
 

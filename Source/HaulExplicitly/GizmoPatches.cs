@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-#if HARMONY_1_2
-using Harmony;
-#elif HARMONY_2
-using HarmonyLib;
-#endif
-using Verse;
+﻿using Verse;
 using RimWorld;
 using UnityEngine;
 using System.Reflection;
+using HarmonyLib;
 
 namespace HaulExplicitly
 {
@@ -74,8 +68,8 @@ namespace HaulExplicitly
         {
             List<Designator> list =
                 (List<Designator>)typeof(ReverseDesignatorDatabase).InvokeMember("desList",
-                BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
-                null, __instance, null);
+                    BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, __instance, null);
             list.Add(new Designator_Unhaul());
         }
     }
@@ -107,8 +101,10 @@ namespace HaulExplicitly
                     pos.z -= t.RotatedSize.z * 0.3f;
                     mesh = MeshPool.plane03;
                 }
+
                 Graphics.DrawMesh(mesh, pos, Quaternion.identity, MiscUtil.GetMoreMaterials(matpath), 0);
             }
+
             return false;
         }
     }

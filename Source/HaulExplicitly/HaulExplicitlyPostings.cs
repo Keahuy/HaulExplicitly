@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Verse;
+﻿using Verse;
 using Verse.AI;
 using RimWorld;
 using Vector3 = UnityEngine.Vector3;
 using System.Reflection;
-#if HARMONY_1_2
-using Harmony;
-#elif HARMONY_2
 using HarmonyLib;
-#endif
+
 
 namespace HaulExplicitly
 {
@@ -18,28 +12,62 @@ namespace HaulExplicitly
     {
         //data
         private System.WeakReference _parentPosting;
+
         public HaulExplicitlyPosting parentPosting
         {
             get
             {
-                try { return (HaulExplicitlyPosting)_parentPosting.Target; } catch { }
+                try
+                {
+                    return (HaulExplicitlyPosting)_parentPosting.Target;
+                }
+                catch
+                {
+                }
+
                 foreach (var mgr in HaulExplicitly.GetManagers())
-                    foreach (var posting in mgr.postings.Values)
-                        if (posting.inventory.Contains(this))
-                            return (HaulExplicitlyPosting)(_parentPosting = new WeakReference(posting)).Target;
+                foreach (var posting in mgr.postings.Values)
+                    if (posting.inventory.Contains(this))
+                        return (HaulExplicitlyPosting)(_parentPosting = new WeakReference(posting)).Target;
                 throw new NullReferenceException("Orphaned HaulExplicitlyInventoryRecord");
             }
         }
+
         public List<Thing> items = new List<Thing>();
         private ThingDef _itemDef;
-        public ThingDef itemDef { get { return _itemDef; } private set { _itemDef = value; } }
+
+        public ThingDef itemDef
+        {
+            get { return _itemDef; }
+            private set { _itemDef = value; }
+        }
+
         private ThingDef _itemStuff;
-        public ThingDef itemStuff { get { return _itemStuff; } private set { _itemStuff = value; } }
+
+        public ThingDef itemStuff
+        {
+            get { return _itemStuff; }
+            private set { _itemStuff = value; }
+        }
+
         private ThingDef _miniDef;
-        public ThingDef miniDef { get { return _miniDef; } private set { _miniDef = value; } }
+
+        public ThingDef miniDef
+        {
+            get { return _miniDef; }
+            private set { _miniDef = value; }
+        }
+
         private int _selectedQuantity;
-        public int selectedQuantity { get { return _selectedQuantity; } private set { _selectedQuantity = value; } }
+
+        public int selectedQuantity
+        {
+            get { return _selectedQuantity; }
+            private set { _selectedQuantity = value; }
+        }
+
         private int _playerSetQuantity = -1;
+
         public int setQuantity
         {
             get { return (_playerSetQuantity == -1) ? selectedQuantity : _playerSetQuantity; }
@@ -50,14 +78,28 @@ namespace HaulExplicitly
                 _playerSetQuantity = (int)value;
             }
         }
+
         public bool PlayerChangedQuantity
         {
             get { return _playerSetQuantity != -1; }
         }
+
         private int _mergeCapacity;
-        public int mergeCapacity { get { return _mergeCapacity; } private set { _mergeCapacity = value; } }
+
+        public int mergeCapacity
+        {
+            get { return _mergeCapacity; }
+            private set { _mergeCapacity = value; }
+        }
+
         private int _numMergeStacksWillUse;
-        public int numMergeStacksWillUse { get { return _numMergeStacksWillUse; } private set { _numMergeStacksWillUse = value; } }
+
+        public int numMergeStacksWillUse
+        {
+            get { return _numMergeStacksWillUse; }
+            private set { _numMergeStacksWillUse = value; }
+        }
+
         public int movedQuantity = 0;
 
         //
@@ -75,7 +117,10 @@ namespace HaulExplicitly
         }
 
         //methods
-        public HaulExplicitlyInventoryRecord() { }
+        public HaulExplicitlyInventoryRecord()
+        {
+        }
+
         public HaulExplicitlyInventoryRecord(Thing initial, HaulExplicitlyPosting parentPosting)
         {
             _parentPosting = new System.WeakReference(parentPosting);
@@ -112,9 +157,9 @@ namespace HaulExplicitly
         public bool CanMixWith(Thing t)
         {
             return (t.def.category == ThingCategory.Item
-                && itemDef == t.def
-                && itemStuff == t.Stuff
-                && miniDef == (t as MinifiedThing)?.InnerThing.def);
+                    && itemDef == t.def
+                    && itemStuff == t.Stuff
+                    && miniDef == (t as MinifiedThing)?.InnerThing.def);
         }
 
         public bool hasItem(Thing t)
@@ -140,6 +185,7 @@ namespace HaulExplicitly
                 selectedQuantity -= t.stackCount;
                 _playerSetQuantity = Math.Min(_playerSetQuantity, selectedQuantity);
             }
+
             return r;
         }
 
@@ -155,17 +201,17 @@ namespace HaulExplicitly
                         && this == ((JobDriver_HaulExplicitly)p.jobs.curDriver).record)
                         beingHauledNow += p.jobs.curJob.count;
                 }
-                catch { }
+                catch
+                {
+                }
             }
+
             return Math.Max(0, setQuantity - (movedQuantity + beingHauledNow));
         }
 
         public string Label
         {
-            get
-            {
-                return GenLabel.ThingLabel(miniDef ?? itemDef, itemStuff, setQuantity).CapitalizeFirst();
-            }
+            get { return GenLabel.ThingLabel(miniDef ?? itemDef, itemStuff, setQuantity).CapitalizeFirst(); }
         }
     }
 
@@ -176,8 +222,8 @@ namespace HaulExplicitly
         {
             HashSet<Thing> referencedThings =
                 (HashSet<Thing>)typeof(CompressibilityDecider).InvokeMember("referencedThings",
-                BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
-                null, __instance, null);
+                    BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
+                    null, __instance, null);
             Map map = (Map)typeof(CompressibilityDecider).InvokeMember("map",
                 BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
                 null, __instance, null);
@@ -189,7 +235,7 @@ namespace HaulExplicitly
 
     public enum HaulExplicitlyStatus : byte
     {
-        Planning,  //hasn't been posted yet
+        Planning, //hasn't been posted yet
         InProgress,
         DestinationBlocked, //one or more item types can't fit in their destinations right now
         Incompletable, //all possible hauls have been done (inventory exhausted), but the job is incomplete
@@ -201,8 +247,19 @@ namespace HaulExplicitly
     {
         private int _id;
         private Map _map;
-        public int id { get { return _id; } private set { _id = value; } }
-        public Map map { get { return _map; } private set { _map = value; } }
+
+        public int id
+        {
+            get { return _id; }
+            private set { _id = value; }
+        }
+
+        public Map map
+        {
+            get { return _map; }
+            private set { _map = value; }
+        }
+
         public List<HaulExplicitlyInventoryRecord> inventory = new List<HaulExplicitlyInventoryRecord>();
         public List<Thing> items = new List<Thing>();
         public List<IntVec3> destinations = null;
@@ -227,7 +284,10 @@ namespace HaulExplicitly
             }
         }
 
-        public HaulExplicitlyPosting() { }
+        public HaulExplicitlyPosting()
+        {
+        }
+
         public HaulExplicitlyPosting(IEnumerable<object> objects)
         {
             id = HaulExplicitly.GetNewPostingID();
@@ -243,7 +303,9 @@ namespace HaulExplicitly
                     if (record.TryAddItem(t))
                         goto match;
                 inventory.Add(new HaulExplicitlyInventoryRecord(t, this));
-            match: { }
+                match:
+                {
+                }
             }
         }
 
@@ -260,11 +322,13 @@ namespace HaulExplicitly
                     break;
                 }
             }
+
             if (owner_record == null || !owner_record.TryRemoveItem(t, playerCancelled))
             {
                 Log.Error("Something went wronghbhnoetb9ugob9g3b49.");
                 return false;
             }
+
             items.Remove(t);
             return true;
         }
@@ -279,7 +343,7 @@ namespace HaulExplicitly
                     goto found;
             Log.Error("TryAddItemSplinter failed to find matching record for " + t);
             return false;
-        found:
+            found:
             items.Add(t);
             recordfinder.Current.TryAddItem(t, false);
             return true;
@@ -292,6 +356,7 @@ namespace HaulExplicitly
                 if (record.hasItem(t))
                     return record;
             }
+
             return null;
         }
 
@@ -306,8 +371,8 @@ namespace HaulExplicitly
         {
             items = new List<Thing>();
             foreach (var r in inventory)
-                foreach (Thing t in r.items)
-                    items.Add(t);
+            foreach (Thing t in r.items)
+                items.Add(t);
         }
 
         private void inventoryResetMerge()
@@ -327,21 +392,24 @@ namespace HaulExplicitly
                 || c.Fogged(this.map)
                 || c.InNoZoneEdgeArea(this.map)
                 || c.GetTerrain(this.map).passability == Traversability.Impassable
-                    )
+               )
                 return false;
             foreach (Thing t in this.map.thingGrid.ThingsAt(c))
             {
                 if (!t.def.CanOverlapZones || t.def.passability == Traversability.Impassable || t.def.IsDoor)
                     return false;
             }
+
             return true;
         }
 
         private IEnumerable<IntVec3> PossibleItemDestinationsAtCursor(Vector3 cursor)
         {
             IntVec3 cursor_cell = new IntVec3(cursor);
-            var cardinals = new IntVec3[] {
-                IntVec3.North, IntVec3.South, IntVec3.East, IntVec3.West };
+            var cardinals = new IntVec3[]
+            {
+                IntVec3.North, IntVec3.South, IntVec3.East, IntVec3.West
+            };
             HashSet<IntVec3> expended = new HashSet<IntVec3>();
             HashSet<IntVec3> available = new HashSet<IntVec3>();
             if (IsPossibleItemDestination(cursor_cell))
@@ -359,6 +427,7 @@ namespace HaulExplicitly
                         nearest_dist = dist;
                     }
                 }
+
                 yield return nearest;
                 available.Remove(nearest);
                 expended.Add(nearest);
@@ -437,6 +506,7 @@ namespace HaulExplicitly
                     }
                 }
             }
+
             destinations = null;
             return false;
         }
@@ -465,16 +535,19 @@ namespace HaulExplicitly
                 if (thing.def.EverStorable(false))
                     result.Add(thing);
             }
+
             return result;
         }
 
         internal string stringy_details()
         {
             //this function will output a bunch of the inner variables into a string
-            var s = new List<string>(new string[] { "HaulExplicitlyPosting #",
+            var s = new List<string>(new string[]
+            {
+                "HaulExplicitlyPosting #",
                 id + "\n",
-                "total inventory records: "+inventory.Count+"\n",
-                "map = "+map.ToString()+"\n"
+                "total inventory records: " + inventory.Count + "\n",
+                "map = " + map.ToString() + "\n"
             });
             var inventory_all_items = new List<Thing>();
             var inventory_readout = new List<string>(new string[] { "Inventory readout:\n" });
@@ -485,6 +558,7 @@ namespace HaulExplicitly
                 foreach (var item in inventory[i].items)
                     inventory_readout.Add(" (" + item + ")");
             }
+
             string coherent = "-";
             try
             {
@@ -501,7 +575,11 @@ namespace HaulExplicitly
                 //else
                 //    coherent = "false";*/
             }
-            catch { coherent = "false (exception)"; }
+            catch
+            {
+                coherent = "false (exception)";
+            }
+
             s.Add("Coherent: " + coherent + "\n");
             //s.Add("items:\n");
             //foreach (var i in items)
@@ -510,8 +588,8 @@ namespace HaulExplicitly
             s = new List<string>(s.Concat(inventory_readout));
             s.Add("\ndestinations:\n");
             foreach (var r in inventory)
-                foreach (var dest in destinations)
-                    s.Add("  (" + dest + ")");
+            foreach (var dest in destinations)
+                s.Add("  (" + dest + ")");
             s.Add("\n");
             //s.Add("inventory:\n");
             //foreach (var r in inventory)
@@ -523,7 +601,13 @@ namespace HaulExplicitly
     public class HaulExplicitlyJobManager : IExposable
     {
         private Map _map;
-        public Map map { get { return _map; } private set { _map = value; } }
+
+        public Map map
+        {
+            get { return _map; }
+            private set { _map = value; }
+        }
+
         public Dictionary<int, HaulExplicitlyPosting> postings;
 
         public IEnumerable<Thing> haulables
@@ -531,8 +615,8 @@ namespace HaulExplicitly
             get
             {
                 foreach (HaulExplicitlyPosting posting in postings.Values)
-                    foreach (Thing item in posting.items)
-                        yield return item;
+                foreach (Thing item in posting.items)
+                    yield return item;
             }
         }
 
@@ -555,7 +639,10 @@ namespace HaulExplicitly
             }
         }
 
-        public HaulExplicitlyJobManager() { }
+        public HaulExplicitlyJobManager()
+        {
+        }
+
         public HaulExplicitlyJobManager(Map map)
         {
             this.map = map;
@@ -619,6 +706,7 @@ namespace HaulExplicitly
                         }
                     }
                 }
+
                 //finally, increment our counter of cells with our item's stack type
                 if (cell_is_same_stack_type)
                     dests_with_this_stack_type++;
@@ -642,12 +730,13 @@ namespace HaulExplicitly
                         partialCellSpaceAvailable.Add(space_avail);
                     }
                 }
-                catch { }
+                catch
+                {
+                }
             }
         }
 
-        public static DeliverableDestinations For(
-            Thing item, Pawn carrier, HaulExplicitlyPosting posting = null, Func<IntVec3, float> grader = null)
+        public static DeliverableDestinations For(Thing item, Pawn carrier, HaulExplicitlyPosting posting = null, Func<IntVec3, float> grader = null)
         {
             if (posting == null) //do the handholdy version of this function
             {
@@ -655,6 +744,7 @@ namespace HaulExplicitly
                 if (posting == null)
                     throw new ArgumentException();
             }
+
             return new DeliverableDestinations(item, carrier, posting, (grader != null) ? grader : DefaultGrader);
         }
 
@@ -670,7 +760,7 @@ namespace HaulExplicitly
             List<IntVec3> result = new List<IntVec3>(partial_cells);
             result.AddRange(
                 free_cells.OrderByDescending(grader)
-                .Take(free_cells_will_use));
+                    .Take(free_cells_will_use));
             return result;
         }
 
@@ -688,6 +778,7 @@ namespace HaulExplicitly
                 int space = (i == -1) ? thing.def.stackLimit : partialCellSpaceAvailable[i];
                 dest_space_available += space;
             }
+
             return new List<IntVec3>(destsOrdered.Take(u));
         }
 
@@ -709,6 +800,7 @@ namespace HaulExplicitly
                     space += thing.def.stackLimit;
                 }
             }
+
             return space;
         }
 

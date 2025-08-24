@@ -10,6 +10,7 @@ namespace HaulExplicitly
             //the haul designation "toggles" whether something is haulable
             return t.MapHeld.designationManager.DesignationOn(t, DesignationDefOf.Haul) != null;
         }
+
         public static bool IsAHaulableSetToHaulable(this Thing t)
         {
             if (!t.def.EverHaulable)
@@ -17,6 +18,7 @@ namespace HaulExplicitly
             //(alwaysHaulable gets priority if alwaysHaulable and designateHaulable are both set)
             return t.def.alwaysHaulable != t.HasHaulabilityToggled();
         }
+
         public static bool IsAHaulableSetToUnhaulable(this Thing t)
         {
             if (!t.def.EverHaulable)

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Verse;
+﻿using Verse;
 using Verse.AI;
 using RimWorld;
 using Mathf = UnityEngine.Mathf;
@@ -70,21 +67,25 @@ namespace HaulExplicitly
                 JobFailReason.Is("BurningLower".Translate(), null);
                 return false;
             }
+
             return true;
         }
 
         public static int AmountPawnWantsToPickUp(Pawn p, Thing t, HaulExplicitlyPosting posting)
         {
-            return Mathf.Min(new int[] {
+            return Mathf.Min(new int[]
+            {
                 posting.RecordWithItem(t).RemainingToHaul(),
                 p.carryTracker.AvailableStackSpace(t.def),
-                t.stackCount });
+                t.stackCount
+            });
         }
     }
 
     public class JobDriver_HaulExplicitly : JobDriver
     {
         private HaulExplicitlyInventoryRecord _record;
+
         public HaulExplicitlyInventoryRecord record
         {
             get
@@ -95,7 +96,9 @@ namespace HaulExplicitly
             }
             private set { _record = value; }
         }
+
         private HaulExplicitlyPosting _posting;
+
         public HaulExplicitlyPosting posting
         {
             get
@@ -106,13 +109,15 @@ namespace HaulExplicitly
             }
             private set { _posting = value; }
         }
-        public int posting_id { get { return job.targetQueueA[0].Cell.x; } }
+
+        public int posting_id
+        {
+            get { return job.targetQueueA[0].Cell.x; }
+        }
+
         public int dest_space_available
         {
-            get
-            {
-                return job.targetQueueA[0].Cell.y;
-            }
+            get { return job.targetQueueA[0].Cell.y; }
             set
             {
                 var c = job.targetQueueA[0].Cell;
@@ -149,7 +154,7 @@ namespace HaulExplicitly
 
             Toil gotoThing = Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.ClosestTouch);
             gotoThing.FailOnSomeonePhysicallyInteracting(TargetIndex.A);
-            gotoThing.FailOn(delegate (Toil toil)
+            gotoThing.FailOn(delegate(Toil toil)
             {
                 Job job = toil.actor.CurJob;
                 Thing thing = job.GetTarget(TargetIndex.A).Thing;
@@ -213,8 +218,7 @@ namespace HaulExplicitly
                 {
                     Thing prospect = null;
                     int best_dist = 999;
-                    foreach (Thing item in driver.record.items.Where(
-                        i => i.Spawned && WorkGiver_HaulExplicitly.CanGetThing(actor, i, false)))
+                    foreach (Thing item in driver.record.items.Where(i => i.Spawned && WorkGiver_HaulExplicitly.CanGetThing(actor, i, false)))
                     {
                         IntVec3 offset = item.Position - actor.Position;
                         int dist = Math.Abs(offset.x) + Math.Abs(offset.z);
@@ -224,6 +228,7 @@ namespace HaulExplicitly
                             best_dist = dist;
                         }
                     }
+
                     if (prospect == null)
                         return;
                     int space_request = WorkGiver_HaulExplicitly
@@ -247,6 +252,7 @@ namespace HaulExplicitly
                         actor.Reserve(dest, job);
                         job.targetQueueB.Add(dest);
                     }
+
                     job.count += count;
                     driver.JumpToToil(nextToilIfBeingOpportunistic);
                 }
@@ -254,7 +260,7 @@ namespace HaulExplicitly
             return toil;
         }
 
-        public static Toil PlaceHauledThingAtDest(TargetIndex destInd, Toil nextToilIfNotDonePlacing = null)
+        public static Toil PlaceHauledThingAtDest(TargetIndex destInd, Toil nextToilIfNotDonePlacing)
         {
             Toil toil = new Toil();
             toil.initAction = delegate
@@ -267,10 +273,11 @@ namespace HaulExplicitly
                     Log.Error(actor + " tried to place hauled thing in cell but is not hauling anything.");
                     return;
                 }
+
                 int carryBeforeCount = carriedItem.stackCount;
                 Job job = actor.CurJob;
                 var driver = (JobDriver_HaulExplicitly)actor.jobs.curDriver;
-                driver.init();//this fixes problems
+                driver.init(); //this fixes problems
                 Map map = driver.posting.map;
                 IntVec3 dest = job.GetTarget(destInd).Cell;
                 Thing floorItem = null;
@@ -316,9 +323,9 @@ namespace HaulExplicitly
                         else
                         {
                             Log.Error("Incomplete explicit haul for " + actor
-                                + ": Could not find anywhere to put "
-                                + carriedItem + " near " + actor.Position
-                                + ". Destroying. This should never happen!");
+                                                                      + ": Could not find anywhere to put "
+                                                                      + carriedItem + " near " + actor.Position
+                                                                      + ". Destroying. This should never happen!");
                             carriedItem.Destroy(DestroyMode.Vanish);
                             actor.jobs.EndCurrentJob(JobCondition.Incompletable);
                         }

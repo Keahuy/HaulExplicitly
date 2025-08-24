@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-#if HARMONY_1_2
-using Harmony;
-#elif HARMONY_2
-using HarmonyLib;
-#endif
+﻿using HarmonyLib;
 using Verse;
 using RimWorld;
 
@@ -58,6 +52,7 @@ namespace HaulExplicitly
                 __result = false;
                 return false;
             }
+
             return true;
         }
     }
@@ -73,6 +68,7 @@ namespace HaulExplicitly
                 __result = false;
                 return false;
             }
+
             return true;
         }
     }

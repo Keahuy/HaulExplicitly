@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Verse;
+﻿using Verse;
 using Verse.AI;
 using RimWorld;
 using UnityEngine;
@@ -42,6 +39,7 @@ namespace HaulExplicitly
                         _rwby_patched = rwby_patched =
                             MiscUtil.AllHarmonyPatchOwners().Contains("rimworld.carnysenpai.rwbyremnant");
                     }
+
                     if (!rwby_patched && !_gave_warning)
                     {
                         Log.Warning("GetGizmos was called on a despawned Thing, which is rather unusual.");
@@ -75,7 +73,7 @@ namespace HaulExplicitly
 
     public class Designator_HaulExplicitly : Designator
     {
-        private static HaulExplicitlyPosting prospective_job = null;
+        private static HaulExplicitlyPosting prospective_job;
 
         public static void ResetJob()
         {
@@ -148,6 +146,7 @@ namespace HaulExplicitly
         {
             base.FinalizeDesignationFailed();
         }
+
         protected override void FinalizeDesignationSucceeded()
         {
             base.FinalizeDesignationSucceeded();
@@ -155,6 +154,7 @@ namespace HaulExplicitly
 
         private Vector2 scrollPosition = Vector2.zero;
         private float gui_last_drawn_height = 0;
+
         public override void DoExtraGuiControls(float leftX, float bottomY)
         {
             HaulExplicitlyPosting posting = Designator_HaulExplicitly.prospective_job;
@@ -184,13 +184,10 @@ namespace HaulExplicitly
                         Rect buttonRect = new Rect(rowRect.x + rowRect.width,
                             rowRect.y + (rowRect.height - 24f) / 2, 24f, 24f);
                         if (Widgets.ButtonImage(buttonRect,
-                            RimWorld.Planet.CaravanThingsTabUtility.AbandonSpecificCountButtonTex))
+                                RimWorld.Planet.CaravanThingsTabUtility.AbandonSpecificCountButtonTex))
                         {
                             string txt = "HaulExplicitly.ItemHaulSetQuantity".Translate(new NamedArgument((rec.itemDef.label).CapitalizeFirst(), "ITEMTYPE"));
-                            var dialog = new Dialog_Slider(txt, 1, rec.selectedQuantity, delegate (int x)
-                            {
-                                rec.setQuantity = x;
-                            }, rec.setQuantity);
+                            var dialog = new Dialog_Slider(txt, 1, rec.selectedQuantity, delegate(int x) { rec.setQuantity = x; }, rec.setQuantity);
                             dialog.layer = WindowLayer.GameUI;
                             Find.WindowStack.Add(dialog);
                         }
@@ -219,6 +216,7 @@ namespace HaulExplicitly
 
                     y += row_height;
                 }
+
                 gui_last_drawn_height = y;
                 Text.Font = prev_font;
                 Text.Anchor = TextAnchor.UpperLeft;
@@ -253,7 +251,7 @@ namespace HaulExplicitly
 #if RW_1_0
                     .ToList())
 #else
-                    .ListFullCopy())
+                             .ListFullCopy())
 #endif
                 {
                     var jobs = new List<Job>(p.jobs.jobQueue.AsEnumerable().Select(j => j.job));
@@ -300,7 +298,7 @@ namespace HaulExplicitly
 #else
                     t.Spawned
 #endif
-                    )
+                   )
                     selector.Select(o);
             }
         }
@@ -317,13 +315,14 @@ namespace HaulExplicitly
                 if (other == null || !posting.items.Contains(other))
                     return false;
             }
+
             return Find.Selector.SelectedObjects.Count < posting.items.Count(i =>
 #if RW_1_4_OR_GREATER
                 i.SpawnedOrAnyParentSpawned
 #else
-                i.Spawned
+                    i.Spawned
 #endif
-                );
+            );
         }
     }
 }
