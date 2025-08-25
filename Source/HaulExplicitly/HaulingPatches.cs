@@ -168,8 +168,9 @@ namespace HaulExplicitly
         static void Postfix(Designation __instance)
         {
             if (__instance.def == DesignationDefOf.Haul && __instance.target.HasThing)
-                __instance.designationManager.map.listerMergeables
-                    .Notify_ThingStackChanged(__instance.target.Thing);
+            {
+                __instance.designationManager.map.listerMergeables.Notify_ThingStackChanged(__instance.target.Thing);
+            }
         }
     }
 
@@ -200,6 +201,27 @@ namespace HaulExplicitly
                     return !__instance.job.ignoreDesignations && !t.IsAHaulableSetToHaulable();
                 });
             }
+        }
+    }
+
+    [HarmonyPatch(typeof(JobDriver_HaulToCell), "BeforeDrop")]
+    class JobDriver_HaulToCell_BeforeDrop_Patch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(JobDriver_HaulToCell __instance, ref Toil __result)
+        {
+            Toil toil = ToilMaker.MakeToil("Label");
+            toil.atomicWithPrevious = true;
+            toil.defaultCompleteMode = ToilCompleteMode.Instant;
+            toil.initAction = delegate
+            {
+                    __instance.GetActor()
+                        .Map.designationManager.RemoveDesignation(
+                            __instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing.MapHeld.designationManager.DesignationOn(
+                                __instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing, DesignationDefOf.Haul));
+            };
+
+            __result = toil;
         }
     }
 

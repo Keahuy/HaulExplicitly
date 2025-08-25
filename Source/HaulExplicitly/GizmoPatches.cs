@@ -42,36 +42,6 @@ namespace HaulExplicitly
         }
     }
 
-    /*[HarmonyPatch(typeof(Designator_Haul), "CanDesignateThing")]
-    class Designator_Haul_CanDesignateThing_Patch
-    {
-        static void Postfix(ref Verse.AcceptanceReport __result, Thing t)
-        {
-            __result = t.IsAHaulableSetToUnhaulable();
-        }
-    }*/
-
-    /*[HarmonyPatch(typeof(Designator_Haul), MethodType.Constructor)]
-    class Designator_Haul_Constructor_Patch
-    {
-        static void Postfix(Designator_Haul __instance)
-        {
-            __instance.icon = ContentFinder<Texture2D>.Get("Buttons/Haulable", true);
-            __instance.defaultLabel = "HaulExplicitly.SetHaulableLabel".Translate();
-            __instance.defaultDesc = "HaulExplicitly.SetHaulableDesc".Translate();
-        }
-    }*/
-
-    /*[HarmonyPatch(typeof(Designator_Haul), "Designation")]
-    class Designator_Haul_Designation_Patch
-    {
-        [HarmonyPostfix]
-        public static void Postfix(Designator_Haul __instance)
-        {
-            ((DesignationDef)__instance.GetType().GetField("Designation", AccessTools.all).GetValue(__instance))=new DesignationDef();
-        }
-    }*/
-
     [HarmonyPatch(typeof(ReverseDesignatorDatabase), "InitDesignators")]
     class ReverseDesignatorDatabase_InitDesignators_Patch
     {
@@ -120,19 +90,4 @@ namespace HaulExplicitly
             return false;
         }
     }
-
-    /*[HarmonyPatch(typeof(Command_Action), MethodType.Constructor)]
-    class Designator_CreateReverseDesignationGizmo_Patch
-    {
-        [HarmonyPrefix]
-        public static bool Prefix_CreateReverseDesignationGizmo()
-        {
-            if (Map.designationManager.DesignationOn(t, Designation) == hual)
-            {
-                t.ToggleHaulDesignation();
-            }
-
-            return true;
-        }
-    }*/
 }
