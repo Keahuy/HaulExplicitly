@@ -641,6 +641,7 @@ namespace HaulExplicitly
 
         public HaulExplicitlyJobManager()
         {
+            postings = new Dictionary<int, HaulExplicitlyPosting>();
         }
 
         public HaulExplicitlyJobManager(Map map)
@@ -649,7 +650,7 @@ namespace HaulExplicitly
             postings = new Dictionary<int, HaulExplicitlyPosting>();
         }
 
-        public HaulExplicitlyPosting PostingWithItem(Thing item)
+        public HaulExplicitlyPosting? PostingWithItem(Thing item)
         {
             foreach (var posting in postings.Values)
                 if (posting.items.Contains(item))

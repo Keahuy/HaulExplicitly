@@ -7,46 +7,15 @@ namespace HaulExplicitly
 {
     public static class GizmoUtility
     {
-#if !RW_1_4_OR_GREATER
-        private static bool? _rwby_patched = null;
-        private static bool _gave_warning = false;
-#endif
-
         public static IEnumerable<Gizmo> GetHaulExplicitlyGizmos(Thing t)
         {
             if (t.def.EverHaulable)
             {
-#if !RW_1_4_OR_GREATER
-                if (t.Spawned)
-                {
-#endif
-                    yield return new Designator_HaulExplicitly();
-                    if (Command_Cancel_HaulExplicitly.RelevantToThing(t))
-                        yield return new Command_Cancel_HaulExplicitly(t);
-                    if (Command_SelectAllForHaulExplicitly.RelevantToThing(t))
-                        yield return new Command_SelectAllForHaulExplicitly();
-#if !RW_1_4_OR_GREATER
-                }
-                else
-                {
-                    bool rwby_patched;
-                    try
-                    {
-                        rwby_patched = _rwby_patched.Value;
-                    }
-                    catch
-                    {
-                        _rwby_patched = rwby_patched =
-                            MiscUtil.AllHarmonyPatchOwners().Contains("rimworld.carnysenpai.rwbyremnant");
-                    }
-
-                    if (!rwby_patched && !_gave_warning)
-                    {
-                        Log.Warning("GetGizmos was called on a despawned Thing, which is rather unusual.");
-                        _gave_warning = true;
-                    }
-                }
-#endif
+                yield return new Designator_HaulExplicitly();
+                if (Command_Cancel_HaulExplicitly.RelevantToThing(t))
+                    yield return new Command_Cancel_HaulExplicitly(t);
+                if (Command_SelectAllForHaulExplicitly.RelevantToThing(t))
+                    yield return new Command_SelectAllForHaulExplicitly();
             }
         }
     }
@@ -140,16 +109,6 @@ namespace HaulExplicitly
                         DesignatorUtility.DragHighlightThingMat, 0);
                 }
             }
-        }
-
-        protected override void FinalizeDesignationFailed()
-        {
-            base.FinalizeDesignationFailed();
-        }
-
-        protected override void FinalizeDesignationSucceeded()
-        {
-            base.FinalizeDesignationSucceeded();
         }
 
         private Vector2 scrollPosition = Vector2.zero;
@@ -247,12 +206,7 @@ namespace HaulExplicitly
             if (posting != null)
             {
                 posting.TryRemoveItem(thing, true);
-                foreach (Pawn p in Find.CurrentMap.mapPawns.PawnsInFaction(Faction.OfPlayer)
-#if RW_1_0
-                    .ToList())
-#else
-                             .ListFullCopy())
-#endif
+                foreach (Pawn p in Find.CurrentMap.mapPawns.PawnsInFaction(Faction.OfPlayer).ListFullCopy())
                 {
                     var jobs = new List<Job>(p.jobs.jobQueue.AsEnumerable().Select(j => j.job));
                     if (p.CurJob != null) jobs.Add(p.CurJob);
@@ -268,7 +222,7 @@ namespace HaulExplicitly
 
         public static bool RelevantToThing(Thing t)
         {
-            return HaulExplicitly.GetManager(t).PostingWithItem(t) != null;
+            return HaulExplicitly.GetManager(t) != null ? HaulExplicitly.GetManager(t).PostingWithItem(t) != null : false;
         }
     }
 
@@ -292,13 +246,7 @@ namespace HaulExplicitly
             foreach (object o in posting.items)
             {
                 Thing t = o as Thing;
-                if (!selection.Contains(o) && t != null &&
-#if RW_1_4_OR_GREATER
-                    t.SpawnedOrAnyParentSpawned
-#else
-                    t.Spawned
-#endif
-                   )
+                if (!selection.Contains(o) && t != null && t.SpawnedOrAnyParentSpawned)
                     selector.Select(o);
             }
         }
@@ -316,13 +264,7 @@ namespace HaulExplicitly
                     return false;
             }
 
-            return Find.Selector.SelectedObjects.Count < posting.items.Count(i =>
-#if RW_1_4_OR_GREATER
-                i.SpawnedOrAnyParentSpawned
-#else
-                    i.Spawned
-#endif
-            );
+            return Find.Selector.SelectedObjects.Count < posting.items.Count(i => i.SpawnedOrAnyParentSpawned);
         }
     }
 }

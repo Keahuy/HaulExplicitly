@@ -9,15 +9,7 @@ namespace HaulExplicitly
     [StaticConstructorOnStartup]
     public class PatchMain
     {
-        public static Harmony instance;
-
         static PatchMain()
-        {
-            instance = new Harmony("likeafox.rimworld.haulexplicitly");
-            instance.PatchAll(Assembly.GetExecutingAssembly()); 
-        }
-        
-        public static void DoPatching()
         {
             var harmony = new Harmony("likeafox.rimworld.haulexplicitly");
             harmony.PatchAll();
@@ -98,12 +90,8 @@ namespace HaulExplicitly
     {
         static bool Prefix(Thing t, ListerHaulables __instance)
         {
-            bool shouldhave = t.SpawnedOrAnyParentSpawned &&
-                              __instance.ShouldBeHaulableExt(t, true);
-            List<Thing> haulables =
-                (List<Thing>)typeof(ListerHaulables).InvokeMember("haulables",
-                    BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
-                    null, __instance, null);
+            bool shouldhave = t.SpawnedOrAnyParentSpawned && __instance.ShouldBeHaulableExt(t, true);
+            HashSet<Thing> haulables = (HashSet<Thing>)typeof(ListerHaulables).InvokeMember("haulables", BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic, null, __instance, null);
 
             if (shouldhave != haulables.Contains(t))
             {
@@ -197,15 +185,7 @@ namespace HaulExplicitly
                     (List<Toil>)typeof(JobDriver).InvokeMember("toils",
                         BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
                         null, __instance, null);
-                Toil toilGoto = toils[
-#if !RW_1_4_OR_GREATER
-                    1
-#elif RW_1_4
-                        3
-#elif RW_1_5
-                        4
-#endif
-                ];
+                Toil toilGoto = toils[4];
                 if (toilGoto.defaultCompleteMode != ToilCompleteMode.PatherArrival)
                 {
                     Log.Error("Trying to add fail condition on JobDriver_HaulToCell but "
@@ -223,42 +203,6 @@ namespace HaulExplicitly
         }
     }
 
-#if RW_1_0 || RW_1_1 || RW_1_2
-    [HarmonyPatch(typeof(Toils_Haul), "CheckForGetOpportunityDuplicate")]
-    class Toils_Haul_CheckForGetOpportunityDuplicate_Patch
-    {
-        static void Prefix(ref Predicate<Thing> extraValidator)
-        {
-            const string sf_namepart =
-#if RW_1_0
-                "JobDriver_HaulToCell";
-#else
-                "<MakeNewToils>";
-#endif
-            System.Diagnostics.StackFrame sf = MiscUtil.StackFrameWithMethod(sf_namepart, 3);
-            if (sf == null)
-                return;
-#if !RW_1_0
-            var locals = sf.GetMethod().GetMethodBody().LocalVariables;
-            bool driverInLocals = locals.Select(l => l.LocalType)
-                                        .Where(lt => lt == typeof(Verse.AI.JobDriver_HaulToCell))
-                                        .Any();
-            if (!driverInLocals)
-                return;
-#endif
-
-            var other_test = extraValidator;
-            Predicate<Thing> test = delegate (Thing t)
-            {
-                return t.IsAHaulableSetToHaulable()
-                    && (other_test == null || other_test(t));
-            };
-            extraValidator = test;
-        }
-    }
-#endif
-
-#if RW_1_3 || RW_1_4 || RW_1_5
     [HarmonyPatch]
     class JobDriver_HaulToCell_MakeNewToils_Patch
     {
@@ -309,5 +253,4 @@ namespace HaulExplicitly
                 Log.Error("Patch logic invoked non-1 times: " + patch_count.ToString());
         }
     }
-#endif
 }

@@ -13,7 +13,7 @@ namespace HaulExplicitly
 
         //data
 
-        private Dictionary<int, HaulExplicitlyJobManager> managers = new();
+        private Dictionary<int, HaulExplicitlyJobManager?> managers = new();
 
         private HashSet<Zone_Stockpile> retainingZones = new();
 
@@ -113,7 +113,12 @@ namespace HaulExplicitly
 
         public static HaulExplicitlyJobManager GetManager(Thing t)
         {
-            return GetManager(t.Map);
+            if (t.Map != null)
+            {
+                return GetManager(t.Map);
+            }
+
+            return (t.holdingOwner.Owner as Pawn)?.Map!=null ? GetManager((t.holdingOwner.Owner as Pawn)?.Map!) : new HaulExplicitlyJobManager();
         }
 
         public static List<HaulExplicitlyJobManager> GetManagers()
