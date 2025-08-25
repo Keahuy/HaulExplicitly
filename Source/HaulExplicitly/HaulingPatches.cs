@@ -210,15 +210,16 @@ namespace HaulExplicitly
         [HarmonyPostfix]
         public static void Postfix(JobDriver_HaulToCell __instance, ref Toil __result)
         {
-            Toil toil = ToilMaker.MakeToil("Label");
+            Toil toil = ToilMaker.MakeToil("HaulExplicitlyPatch_HaulToCell_BeforeDrop");
             toil.atomicWithPrevious = true;
             toil.defaultCompleteMode = ToilCompleteMode.Instant;
             toil.initAction = delegate
             {
-                    __instance.GetActor()
-                        .Map.designationManager.RemoveDesignation(
-                            __instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing.MapHeld.designationManager.DesignationOn(
-                                __instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing, DesignationDefOf.Haul));
+                Designation des = __instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing.MapHeld.designationManager.DesignationOn(__instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing, DesignationDefOf.Haul);
+                if (des !=null)
+                {
+                    __instance.GetActor().Map.designationManager.RemoveDesignation(des);
+                }
             };
 
             __result = toil;
