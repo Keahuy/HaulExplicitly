@@ -6,7 +6,7 @@ namespace HaulExplicitly
 {
     public class HaulExplicitlyPostingVisualizationDrawer
     {
-        private static List<int> postings_drawn_this_frame = new List<int>();
+        private static List<int> postings_drawn_this_frame = new();
 
         private static float alt
         {

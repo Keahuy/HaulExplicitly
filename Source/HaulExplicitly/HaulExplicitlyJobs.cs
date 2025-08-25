@@ -132,11 +132,6 @@ namespace HaulExplicitly
             _record = _posting.RecordWithItem(targetItem);
         }
 
-        public override string GetReport()
-        {
-            return base.GetReport();
-        }
-
         public override bool TryMakePreToilReservations(bool errorOnFailed)
         {
             var targets = new List<LocalTargetInfo>();

@@ -3,17 +3,18 @@ using RimWorld;
 using UnityEngine;
 using System.Reflection;
 using HarmonyLib;
+using HaulExplicitly.Gizmo;
 
 namespace HaulExplicitly
 {
     [HarmonyPatch(typeof(Thing), "GetGizmos")]
     class Thing_GetGizmos_Patch
     {
-        static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, Thing __instance)
+        static IEnumerable<Verse.Gizmo> Postfix(IEnumerable<Verse.Gizmo> gizmos, Thing __instance)
         {
-            foreach (Gizmo gizmo in gizmos)
+            foreach (Verse.Gizmo gizmo in gizmos)
                 yield return gizmo;
-            foreach (Gizmo gizmo in GizmoUtility.GetHaulExplicitlyGizmos(__instance))
+            foreach (Verse.Gizmo gizmo in GizmoUtility.GetHaulExplicitlyGizmos(__instance))
                 yield return gizmo;
         }
     }
@@ -21,11 +22,11 @@ namespace HaulExplicitly
     [HarmonyPatch(typeof(ThingWithComps), "GetGizmos")]
     class ThingWithComps_GetGizmos_Patch
     {
-        static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, Thing __instance)
+        static IEnumerable<Verse.Gizmo> Postfix(IEnumerable<Verse.Gizmo> gizmos, Thing __instance)
         {
-            foreach (Gizmo gizmo in gizmos)
+            foreach (Verse.Gizmo gizmo in gizmos)
                 yield return gizmo;
-            foreach (Gizmo gizmo in GizmoUtility.GetHaulExplicitlyGizmos(__instance))
+            foreach (Verse.Gizmo gizmo in GizmoUtility.GetHaulExplicitlyGizmos(__instance))
                 yield return gizmo;
         }
     }
@@ -41,16 +42,16 @@ namespace HaulExplicitly
         }
     }
 
-    [HarmonyPatch(typeof(Designator_Haul), "CanDesignateThing")]
+    /*[HarmonyPatch(typeof(Designator_Haul), "CanDesignateThing")]
     class Designator_Haul_CanDesignateThing_Patch
     {
         static void Postfix(ref Verse.AcceptanceReport __result, Thing t)
         {
             __result = t.IsAHaulableSetToUnhaulable();
         }
-    }
+    }*/
 
-    [HarmonyPatch(typeof(Designator_Haul), MethodType.Constructor)]
+    /*[HarmonyPatch(typeof(Designator_Haul), MethodType.Constructor)]
     class Designator_Haul_Constructor_Patch
     {
         static void Postfix(Designator_Haul __instance)
@@ -59,7 +60,17 @@ namespace HaulExplicitly
             __instance.defaultLabel = "HaulExplicitly.SetHaulableLabel".Translate();
             __instance.defaultDesc = "HaulExplicitly.SetHaulableDesc".Translate();
         }
-    }
+    }*/
+
+    /*[HarmonyPatch(typeof(Designator_Haul), "Designation")]
+    class Designator_Haul_Designation_Patch
+    {
+        [HarmonyPostfix]
+        public static void Postfix(Designator_Haul __instance)
+        {
+            ((DesignationDef)__instance.GetType().GetField("Designation", AccessTools.all).GetValue(__instance))=new DesignationDef();
+        }
+    }*/
 
     [HarmonyPatch(typeof(ReverseDesignatorDatabase), "InitDesignators")]
     class ReverseDesignatorDatabase_InitDesignators_Patch
@@ -71,6 +82,7 @@ namespace HaulExplicitly
                     BindingFlags.GetField | BindingFlags.Instance | BindingFlags.NonPublic,
                     null, __instance, null);
             list.Add(new Designator_Unhaul());
+            list.Add(new Designator_Rehaul());
         }
     }
 
@@ -108,4 +120,19 @@ namespace HaulExplicitly
             return false;
         }
     }
+
+    /*[HarmonyPatch(typeof(Command_Action), MethodType.Constructor)]
+    class Designator_CreateReverseDesignationGizmo_Patch
+    {
+        [HarmonyPrefix]
+        public static bool Prefix_CreateReverseDesignationGizmo()
+        {
+            if (Map.designationManager.DesignationOn(t, Designation) == hual)
+            {
+                t.ToggleHaulDesignation();
+            }
+
+            return true;
+        }
+    }*/
 }

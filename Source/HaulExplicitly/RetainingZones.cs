@@ -25,9 +25,9 @@ namespace HaulExplicitly
     [HarmonyPatch(typeof(Zone_Stockpile), "GetGizmos")]
     class Zone_Stockpile_GetGizmos_Patch
     {
-        static IEnumerable<Gizmo> Postfix(IEnumerable<Gizmo> gizmos, Zone_Stockpile __instance)
+        static IEnumerable<Verse.Gizmo> Postfix(IEnumerable<Verse.Gizmo> gizmos, Zone_Stockpile __instance)
         {
-            foreach (Gizmo gizmo in gizmos)
+            foreach (Verse.Gizmo gizmo in gizmos)
                 yield return gizmo;
             yield return new Command_Toggle
             {

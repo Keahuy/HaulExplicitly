@@ -9,7 +9,7 @@
   <Operation Class="PatchOperationAdd">
   	<xpath>*/DesignationCategoryDef[defName="Orders"]/specialDesignatorClasses</xpath>
   	<value>
-  	  <li>HaulExplicitly.Designator_Unhaul</li>
+  	  <li>HaulExplicitly.Gizmo.Designator_Unhaul</li>
   	</value>
   </Operation>
 </Patch>
