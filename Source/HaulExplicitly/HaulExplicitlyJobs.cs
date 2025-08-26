@@ -260,7 +260,7 @@ namespace HaulExplicitly
             Toil toil = new Toil();
             toil.initAction = delegate
             {
-                //get alllll the vars
+                //get all the vars
                 Pawn actor = toil.actor;
                 Thing carriedItem = actor.carryTracker.CarriedThing;
                 if (carriedItem == null)
@@ -297,7 +297,6 @@ namespace HaulExplicitly
                     var placedCount = carryBeforeCount - carriedItem.stackCount;
                     job.count -= placedCount;
                     driver.record.movedQuantity += placedCount;
-
                     var destQueue = job.GetTargetQueue(destInd);
                     if (nextToilIfNotDonePlacing != null && destQueue.Count != 0)
                     {

@@ -6,7 +6,7 @@ namespace HaulExplicitly.Gizmo;
 
 public class Designator_HaulExplicitly : Designator
 {
-    private static HaulExplicitlyPosting prospective_job;
+    private static HaulExplicitlyPosting? prospective_job;
 
     public static void ResetJob()
     {
