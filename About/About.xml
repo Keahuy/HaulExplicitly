@@ -1,19 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
-  <name>Haul Explicitly (1.6 Fork)</name>
-  <author>likeafox</author>
-  <packageId>likeafox.haulexplicitly</packageId>
-  <url>https://github.com/likeafox/HaulExplicitly/releases/latest</url>
-  <supportedVersions>
-    <li>1.6</li>
-  </supportedVersions>
-  <modDependencies>
-    <li>
-      <packageId>brrainz.harmony</packageId>
-      <displayName>Harmony</displayName>
-      <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
-      <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
-    </li>
-  </modDependencies>
-  <description>Finer control over where your items go.</description>
+    <name>Haul Explicitly (1.6 Fork)</name>
+    <authors>
+        <li>likeafox</li>
+        <li>keahuy</li>
+    </authors>
+    <packageId>likeafox.haulexplicitly</packageId>
+    <url>https://github.com/Keahuy/HaulExplicitly</url>
+    <supportedVersions>
+        <li>1.6</li>
+    </supportedVersions>
+    <modDependencies>
+        <li>
+            <packageId>brrainz.harmony</packageId>
+            <displayName>Harmony</displayName>
+            <steamWorkshopUrl>steam://url/CommunityFilePage/2009463077</steamWorkshopUrl>
+            <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
+        </li>
+    </modDependencies>
+    <incompatibleWith>
+        <!-- 2025.8.26: When used together, the 'Haul To' command may not be able to fully move the specified Stack to the designated location, but may stop after only one move -->
+        <li>andromeda.stackgap</li>
+    </incompatibleWith>
+    <description>Finer control over where your items go.</description>
 </ModMetaData>
