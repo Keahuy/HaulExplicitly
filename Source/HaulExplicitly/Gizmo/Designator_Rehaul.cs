@@ -22,6 +22,11 @@ public class Designator_Rehaul : Designator_Haul
 
     public override AcceptanceReport CanDesignateThing(Thing t)
     {
+        if (t.def.thingCategories.Any(def => def.defName == "StoneChunks"))
+        {
+            return false;
+        }
+
         return t.IsAHaulableSetToUnhaulable();
     }
 }
