@@ -149,7 +149,7 @@ namespace HaulExplicitly
             return (quantity / td.stackLimit) + ((quantity % td.stackLimit == 0) ? 0 : 1);
         }
 
-        public int numStacksWillUse
+        public int NumStacksWillUse
         {
             get { return StacksWorth(itemDef, Math.Max(0, setQuantity - mergeCapacity)) + numMergeStacksWillUse; }
         }
@@ -162,7 +162,7 @@ namespace HaulExplicitly
                     && miniDef == (t as MinifiedThing)?.InnerThing.def);
         }
 
-        public bool hasItem(Thing t)
+        public bool HasItem(Thing t)
         {
             return items.Contains(t);
         }
@@ -191,18 +191,17 @@ namespace HaulExplicitly
 
         public int RemainingToHaul()
         {
-            var pawns_list = new List<Pawn>(parentPosting.map.mapPawns.PawnsInFaction(Faction.OfPlayer));
+            var pawnsList = new List<Pawn>(parentPosting.map.mapPawns.PawnsInFaction(Faction.OfPlayer));
             int beingHauledNow = 0;
-            foreach (Pawn p in pawns_list)
+            foreach (Pawn p in pawnsList)
             {
-                try
+                if (p.jobs.curJob==null)
                 {
-                    if (p.jobs.curJob.def.driverClass == typeof(JobDriver_HaulExplicitly)
-                        && this == ((JobDriver_HaulExplicitly)p.jobs.curDriver).record)
-                        beingHauledNow += p.jobs.curJob.count;
+                    continue;
                 }
-                catch
+                if (p.jobs.curJob.def.driverClass == typeof(JobDriver_HaulExplicitly) && this == ((JobDriver_HaulExplicitly)p.jobs.curDriver).record)
                 {
+                    beingHauledNow += p.jobs.curJob.count;
                 }
             }
 
@@ -284,10 +283,6 @@ namespace HaulExplicitly
             }
         }
 
-        public HaulExplicitlyPosting()
-        {
-        }
-
         public HaulExplicitlyPosting(IEnumerable<object> objects)
         {
             id = HaulExplicitly.GetNewPostingID();
@@ -296,12 +291,19 @@ namespace HaulExplicitly
             {
                 Thing t = o as Thing;
                 if (t == null || !t.def.EverHaulable)
+                {
                     continue;
+                }
 
                 items.Add(t);
                 foreach (HaulExplicitlyInventoryRecord record in inventory)
+                {
                     if (record.TryAddItem(t))
+                    {
                         goto match;
+                    }
+                }
+
                 inventory.Add(new HaulExplicitlyInventoryRecord(t, this));
                 match:
                 {
@@ -316,7 +318,7 @@ namespace HaulExplicitly
             HaulExplicitlyInventoryRecord owner_record = null;
             foreach (var record in inventory)
             {
-                if (record.hasItem(t))
+                if (record.HasItem(t))
                 {
                     owner_record = record;
                     break;
@@ -353,7 +355,7 @@ namespace HaulExplicitly
         {
             foreach (var record in inventory)
             {
-                if (record.hasItem(t))
+                if (record.HasItem(t))
                     return record;
             }
 
@@ -375,7 +377,7 @@ namespace HaulExplicitly
                 items.Add(t);
         }
 
-        private void inventoryResetMerge()
+        private void InventoryResetMerge()
         {
             foreach (HaulExplicitlyInventoryRecord record in inventory)
                 record.ResetMerge();
@@ -444,16 +446,17 @@ namespace HaulExplicitly
             }
         }
 
-        public bool TryMakeDestinations(Vector3 cursor, bool try_be_lazy = true)
+        public bool TryMakeDestinations(Vector3 cursor, bool tryBeLazy = true)
         {
-            if (try_be_lazy && cursor == this.cursor)
+            if (tryBeLazy && cursor == this.cursor)
+            {
                 return destinations != null;
-            this.cursor = cursor;
-            int min_stacks = 0;
-            foreach (HaulExplicitlyInventoryRecord record in inventory)
-                min_stacks += record.numStacksWillUse;
+            }
 
-            inventoryResetMerge();
+            this.cursor = cursor;
+            int minStacks = inventory.Sum(record => record.NumStacksWillUse);
+
+            InventoryResetMerge();
             var dests = new List<IntVec3>();
             var prospects = PossibleItemDestinationsAtCursor(cursor).GetEnumerator();
             while (prospects.MoveNext())
@@ -488,11 +491,11 @@ namespace HaulExplicitly
                     }
                 }
 
-                if (dests.Count >= min_stacks) //this check is just so it doesn't do the more expensive check every time
+                if (dests.Count >= minStacks) //this check is just so it doesn't do the more expensive check every time
                 {
                     int stacks = 0;
                     foreach (HaulExplicitlyInventoryRecord record in inventory)
-                        stacks += record.numStacksWillUse;
+                        stacks += record.NumStacksWillUse;
                     if (dests.Count >= stacks)
                     {
                         //success operations
@@ -757,7 +760,7 @@ namespace HaulExplicitly
         public List<IntVec3> UsableDests()
         {
             int free_cells_will_use = Math.Min(free_cells.Count,
-                Math.Max(0, record.numStacksWillUse - dests_with_this_stack_type));
+                Math.Max(0, record.NumStacksWillUse - dests_with_this_stack_type));
             List<IntVec3> result = new List<IntVec3>(partial_cells);
             result.AddRange(
                 free_cells.OrderByDescending(grader)
@@ -770,7 +773,7 @@ namespace HaulExplicitly
             List<IntVec3> usableDests = UsableDests();
             if (usableDests.Count == 0)
                 return new List<IntVec3>();
-            var destsOrdered = new List<IntVec3>(proximityOrdering(usableDests.RandomElement(), usableDests));
+            var destsOrdered = new List<IntVec3>(ProximityOrdering(usableDests.RandomElement(), usableDests));
             int u; //number of dests to use
             int dest_space_available = 0;
             for (u = 0; u < destsOrdered.Count && dest_space_available < amount; u++)
@@ -789,7 +792,9 @@ namespace HaulExplicitly
             foreach (IntVec3 c in cells)
             {
                 if (!partial_cells.Contains(c) && !free_cells.Contains(c))
+                {
                     throw new ArgumentException("Specified cells don't exist in DeliverableDestinations.");
+                }
                 Thing item;
                 try
                 {
@@ -805,7 +810,7 @@ namespace HaulExplicitly
             return space;
         }
 
-        private static IEnumerable<IntVec3> proximityOrdering(IntVec3 center, IEnumerable<IntVec3> cells)
+        private static IEnumerable<IntVec3> ProximityOrdering(IntVec3 center, IEnumerable<IntVec3> cells)
         {
             return cells.OrderBy(c => Math.Abs(center.x - c.x) + Math.Abs(center.y - c.y));
         }

@@ -31,11 +31,14 @@ public class Designator_HaulExplicitly : Designator
         hotKey = null;
     }
 
+    // 选定目标地点时
     public override AcceptanceReport CanDesignateCell(IntVec3 c)
     {
         HaulExplicitlyPosting posting = prospective_job;
         if (posting == null)
+        {
             return false;
+        }
         return posting.TryMakeDestinations(UI.MouseMapPosition());
     }
 

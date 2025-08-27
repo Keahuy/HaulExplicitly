@@ -83,11 +83,7 @@ namespace HaulExplicitly
         internal static int GetNewPostingID()
         {
             var self = GetInstance();
-            int max = -1;
-            foreach (var mgr in self.managers.Values)
-            foreach (var posting in mgr.postings.Values)
-                if (posting.id > max)
-                    max = posting.id;
+            var max = self.managers.Values.Aggregate(-1, (current, mgr) => mgr.postings.Values.Select(posting => posting.id).Prepend(current).Max());
             return max + 1;
         }
 
@@ -118,7 +114,7 @@ namespace HaulExplicitly
                 return GetManager(t.Map);
             }
 
-            return (t.holdingOwner.Owner as Pawn)?.Map!=null ? GetManager((t.holdingOwner.Owner as Pawn)?.Map!) : new HaulExplicitlyJobManager();
+            return (t.holdingOwner.Owner as Pawn)?.Map != null ? GetManager((t.holdingOwner.Owner as Pawn)?.Map!) : new HaulExplicitlyJobManager();
         }
 
         public static List<HaulExplicitlyJobManager> GetManagers()
