@@ -269,22 +269,15 @@ namespace HaulExplicitly
                 driver.Init(); //this fixes problems
                 Map map = driver.posting.Map;
                 IntVec3 destination  = job.GetTarget(destInd).Cell;
-                Thing floorItem = null;
-                foreach (Thing t in destination .GetThingList(map))
-                {
-                    if (t.def.EverHaulable && t.CanStackWith(carriedItem))
-                        floorItem = t;
-                }
 
                 //put it down now
-                Thing placedThing; //gets set if done
-                bool done = actor.carryTracker.TryDropCarriedThing(destination , ThingPlaceMode.Direct, out placedThing);
+                bool done = actor.carryTracker.TryDropCarriedThing(destination , ThingPlaceMode.Direct, out _);
 
                 if (done)
                 {
                     job.count = 0;
                     driver.record.MovedQuantity += carryBeforeCount;
-                    driver.posting.TryRemoveItem(placedThing);
+                    driver.posting.TryRemoveItem(carriedItem);
                 }
                 else
                 {
