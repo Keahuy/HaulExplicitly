@@ -18,9 +18,7 @@
             <downloadUrl>https://github.com/pardeike/HarmonyRimWorld/releases/latest</downloadUrl>
         </li>
     </modDependencies>
-    <incompatibleWith>
-        <!-- 2025.8.26: When used together, the 'Haul To' command may not be able to fully move the specified Stack to the designated location, but may stop after only one move -->
-        <li>andromeda.stackgap</li>
-    </incompatibleWith>
+    <!-- <incompatibleWith>
+    </incompatibleWith> -->
     <description>Finer control over where your items go.</description>
 </ModMetaData>

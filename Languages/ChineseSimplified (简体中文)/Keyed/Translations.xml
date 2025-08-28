@@ -37,4 +37,11 @@
     <!-- EN: Haul to this location will damage the plants there -->
     <HaulExplicitly.WarningPlantWillBeDestroyed>搬运到此会破坏掉该处的植物</HaulExplicitly.WarningPlantWillBeDestroyed>
 
+    <!-- Notices -->
+    <!-- EN: HaulExplicitly Updated! -->
+    <HaulExplicitly.UpdateNotice.LetterTitle>HaulExplicitly 现已更新！</HaulExplicitly.UpdateNotice.LetterTitle>
+    <!-- EN: HaulExplicitly Updated! -->
+    <HaulExplicitly.UpdateNotice.title>HaulExplicitly 现已更新！</HaulExplicitly.UpdateNotice.title>
+    <!-- EN: Now compatible with "Stack Gap"! -->
+    <HaulExplicitly.UpdateNotice.description>HaulExplicitly 现与 Stack Gap 兼容！</HaulExplicitly.UpdateNotice.description>
 </LanguageData>

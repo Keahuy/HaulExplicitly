@@ -22,4 +22,8 @@
     <!-- Warning -->
     <HaulExplicitly.WarningPlantWillBeDestroyed>Haul to this location will damage the plants there</HaulExplicitly.WarningPlantWillBeDestroyed>
     
+    <!-- Notices -->
+    <HaulExplicitly.UpdateNotice.LetterTitle>HaulExplicitly Updated!</HaulExplicitly.UpdateNotice.LetterTitle>
+    <HaulExplicitly.UpdateNotice.title>HaulExplicitly Updated!</HaulExplicitly.UpdateNotice.title>
+    <HaulExplicitly.UpdateNotice.description>Now compatible with "Stack Gap"!</HaulExplicitly.UpdateNotice.description>
 </LanguageData>
