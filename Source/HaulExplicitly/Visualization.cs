@@ -27,20 +27,20 @@ namespace HaulExplicitly
             Vector3 start = item
                 .PositionHeld
                 .ToVector3ShiftedWithAltitude(alt);
-            Vector3 circle_center = posting.center;
+            Vector3 circle_center = posting.Center;
             circle_center.y = alt;
             Vector3 line_vector = circle_center - start;
-            if (line_vector.magnitude > posting.visualization_radius)
+            if (line_vector.magnitude > posting.VisualizationRadius)
             {
-                line_vector = line_vector.normalized * (line_vector.magnitude - posting.visualization_radius);
+                line_vector = line_vector.normalized * (line_vector.magnitude - posting.VisualizationRadius);
                 GenDraw.DrawLineBetween(start, start + line_vector);
             }
 
-            if (postings_drawn_this_frame.Contains(posting.id))
+            if (postings_drawn_this_frame.Contains(posting.ID))
                 return;
-            postings_drawn_this_frame.Add(posting.id);
+            postings_drawn_this_frame.Add(posting.ID);
             //draw circle
-            GenDraw.DrawCircleOutline(circle_center, posting.visualization_radius);
+            GenDraw.DrawCircleOutline(circle_center, posting.VisualizationRadius);
         }
 
         public static void Clear()

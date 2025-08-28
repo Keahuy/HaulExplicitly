@@ -83,7 +83,7 @@ namespace HaulExplicitly
         internal static int GetNewPostingID()
         {
             var self = GetInstance();
-            var max = self.managers.Values.Aggregate(-1, (current, mgr) => mgr.postings.Values.Select(posting => posting.id).Prepend(current).Max());
+            var max = self.managers.Values.Aggregate(-1, (current, mgr) => mgr.Postings.Values.Select(posting => posting.ID).Prepend(current).Max());
             return max + 1;
         }
 
@@ -125,8 +125,8 @@ namespace HaulExplicitly
 
         public static void RegisterPosting(HaulExplicitlyPosting posting)
         {
-            HaulExplicitlyJobManager manager = GetManager(posting.map);
-            foreach (Thing i in posting.items)
+            HaulExplicitlyJobManager manager = GetManager(posting.Map);
+            foreach (Thing i in posting.Items)
             {
                 {
                     ThingWithComps twc = i as ThingWithComps;
@@ -135,13 +135,13 @@ namespace HaulExplicitly
                 }
                 if (i.IsAHaulableSetToHaulable())
                     i.ToggleHaulDesignation();
-                foreach (var p2 in manager.postings.Values)
+                foreach (var p2 in manager.Postings.Values)
                     p2.TryRemoveItem(i);
             }
 
-            if (manager.postings.Keys.Contains(posting.id))
-                throw new ArgumentException("Posting ID " + posting.id + " already exists in this manager.");
-            manager.postings[posting.id] = posting;
+            if (manager.Postings.Keys.Contains(posting.ID))
+                throw new ArgumentException("Posting ID " + posting.ID + " already exists in this manager.");
+            manager.Postings[posting.ID] = posting;
         }
 
         public static HashSet<Zone_Stockpile> GetRetainingZones()

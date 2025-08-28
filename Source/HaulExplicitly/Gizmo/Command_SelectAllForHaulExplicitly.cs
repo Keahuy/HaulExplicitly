@@ -21,7 +21,7 @@ public class Command_SelectAllForHaulExplicitly : Command
         List<object> selection = selector.SelectedObjects;
         Thing example = (Thing)selection.First();
         HaulExplicitlyPosting posting = HaulExplicitly.GetManager(example).PostingWithItem(example);
-        foreach (object o in posting.items)
+        foreach (object o in posting.Items)
         {
             Thing t = o as Thing;
             if (!selection.Contains(o) && t != null && t.SpawnedOrAnyParentSpawned)
@@ -38,10 +38,10 @@ public class Command_SelectAllForHaulExplicitly : Command
         foreach (object o in Find.Selector.SelectedObjects)
         {
             Thing other = o as Thing;
-            if (other == null || !posting.items.Contains(other))
+            if (other == null || !posting.Items.Contains(other))
                 return false;
         }
 
-        return Find.Selector.SelectedObjects.Count < Enumerable.Count(posting.items, i => i.SpawnedOrAnyParentSpawned);
+        return Find.Selector.SelectedObjects.Count < Enumerable.Count(posting.Items, i => i.SpawnedOrAnyParentSpawned);
     }
 }

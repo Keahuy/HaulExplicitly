@@ -6,17 +6,17 @@ namespace HaulExplicitly.Gizmo;
 
 public class Designator_HaulExplicitly : Designator
 {
-    private static HaulExplicitlyPosting? prospective_job;
+    private static HaulExplicitlyPosting? _prospectiveJob;
 
     public static void ResetJob()
     {
-        prospective_job = null;
+        _prospectiveJob = null;
     }
 
     public static void UpdateJob()
     {
         List<object> objects = Find.Selector.SelectedObjects;
-        prospective_job = new HaulExplicitlyPosting(objects);
+        _prospectiveJob = new HaulExplicitlyPosting(objects);
     }
 
     public Designator_HaulExplicitly()
@@ -34,17 +34,13 @@ public class Designator_HaulExplicitly : Designator
     // 选定目标地点时
     public override AcceptanceReport CanDesignateCell(IntVec3 c)
     {
-        HaulExplicitlyPosting posting = prospective_job;
-        if (posting == null)
-        {
-            return false;
-        }
-        return posting.TryMakeDestinations(UI.MouseMapPosition());
+        HaulExplicitlyPosting? posting = _prospectiveJob;
+        return posting != null && posting.TryMakeDestinations(UI.MouseMapPosition());
     }
 
     public override void DesignateSingleCell(IntVec3 c)
     {
-        HaulExplicitlyPosting posting = prospective_job;
+        HaulExplicitlyPosting posting = _prospectiveJob ?? throw new InvalidOperationException();
         posting.TryMakeDestinations(UI.MouseMapPosition(), false);
         HaulExplicitly.RegisterPosting(posting);
         ResetJob();
@@ -52,7 +48,7 @@ public class Designator_HaulExplicitly : Designator
 
     public override bool CanRemainSelected()
     {
-        return prospective_job != null;
+        return _prospectiveJob != null;
     }
 
     public override void Selected()
@@ -63,13 +59,13 @@ public class Designator_HaulExplicitly : Designator
 
     public override void SelectedUpdate()
     {
-        HaulExplicitlyPosting posting = prospective_job;
+        HaulExplicitlyPosting? posting = _prospectiveJob;
         if (posting == null)
             return;
-        if (posting.TryMakeDestinations(UI.MouseMapPosition()) && posting.destinations != null)
+        if (posting.TryMakeDestinations(UI.MouseMapPosition()) && posting.Destinations != null)
         {
             float alt = AltitudeLayer.MetaOverlays.AltitudeFor();
-            foreach (IntVec3 d in posting.destinations)
+            foreach (IntVec3 d in posting.Destinations)
             {
                 Vector3 drawPos = d.ToVector3ShiftedWithAltitude(alt);
                 Graphics.DrawMesh(MeshPool.plane10, drawPos, Quaternion.identity,
@@ -78,24 +74,24 @@ public class Designator_HaulExplicitly : Designator
         }
     }
 
-    private Vector2 scrollPosition = Vector2.zero;
-    private float gui_last_drawn_height = 0;
+    private Vector2 _scrollPosition = Vector2.zero;
+    private float _guiLastDrawnHeight = 0;
 
     public override void DoExtraGuiControls(float leftX, float bottomY)
     {
-        HaulExplicitlyPosting posting = prospective_job;
+        HaulExplicitlyPosting posting = _prospectiveJob ?? throw new InvalidOperationException();
         var records = new List<HaulExplicitlyInventoryRecord>(
-            posting.inventory.OrderBy(r => r.Label));
+            posting.Inventory.OrderBy(r => r.Label));
         const float max_height = 450f;
         const float width = 268f;
         const float row_height = 28f;
-        float height = Math.Min(gui_last_drawn_height + 20f, max_height);
+        float height = Math.Min(_guiLastDrawnHeight + 20f, max_height);
         Rect winRect = new Rect(leftX, bottomY - height, width, height);
         Rect outerRect = new Rect(0f, 0f, width, height).ContractedBy(10f);
-        Rect innerRect = new Rect(0f, 0f, outerRect.width - 16f, Math.Max(gui_last_drawn_height, outerRect.height));
+        Rect innerRect = new Rect(0f, 0f, outerRect.width - 16f, Math.Max(_guiLastDrawnHeight, outerRect.height));
         Find.WindowStack.ImmediateWindow(622372, winRect, WindowLayer.GameUI, delegate
         {
-            Widgets.BeginScrollView(outerRect, ref scrollPosition, innerRect, true);
+            Widgets.BeginScrollView(outerRect, ref _scrollPosition, innerRect, true);
             GUI.BeginGroup(innerRect);
             GUI.color = ITab_Pawn_Gear.ThingLabelColor;
             GameFont prev_font = Text.Font;
@@ -105,15 +101,15 @@ public class Designator_HaulExplicitly : Designator
             foreach (var rec in records)
             {
                 Rect rowRect = new Rect(0f, y, innerRect.width - 24f, 28f);
-                if (rec.selectedQuantity > 1)
+                if (rec.SelectedQuantity > 1)
                 {
                     Rect buttonRect = new Rect(rowRect.x + rowRect.width,
                         rowRect.y + (rowRect.height - 24f) / 2, 24f, 24f);
                     if (Widgets.ButtonImage(buttonRect,
                             RimWorld.Planet.CaravanThingsTabUtility.AbandonSpecificCountButtonTex))
                     {
-                        string txt = "HaulExplicitly.ItemHaulSetQuantity".Translate(new NamedArgument((rec.itemDef.label).CapitalizeFirst(), "ITEMTYPE"));
-                        var dialog = new Dialog_Slider(txt, 1, rec.selectedQuantity, delegate(int x) { rec.setQuantity = x; }, rec.setQuantity);
+                        string txt = "HaulExplicitly.ItemHaulSetQuantity".Translate(new NamedArgument((rec.ItemDef.label).CapitalizeFirst(), "ITEMTYPE"));
+                        var dialog = new Dialog_Slider(txt, 1, rec.SelectedQuantity, delegate(int x) { rec.SetQuantity = x; }, rec.SetQuantity);
                         dialog.layer = WindowLayer.GameUI;
                         Find.WindowStack.Add(dialog);
                     }
@@ -125,13 +121,13 @@ public class Designator_HaulExplicitly : Designator
                     GUI.DrawTexture(rowRect, TexUI.HighlightTex);
                 }
 
-                if (rec.itemDef.DrawMatSingle?.mainTexture != null)
+                if (rec.ItemDef.DrawMatSingle?.mainTexture != null)
                 {
                     Rect iconRect = new Rect(4f, y, 28f, 28f);
-                    if (rec.miniDef != null || rec.selectedQuantity == 1)
-                        Widgets.ThingIcon(iconRect, rec.items[0]);
+                    if (rec.MiniDef != null || rec.SelectedQuantity == 1)
+                        Widgets.ThingIcon(iconRect, rec.Items[0]);
                     else
-                        Widgets.ThingIcon(iconRect, rec.itemDef);
+                        Widgets.ThingIcon(iconRect, rec.ItemDef);
                 }
 
                 Text.Anchor = TextAnchor.MiddleLeft;
@@ -143,7 +139,7 @@ public class Designator_HaulExplicitly : Designator
                 y += row_height;
             }
 
-            gui_last_drawn_height = y;
+            _guiLastDrawnHeight = y;
             Text.Font = prev_font;
             Text.Anchor = TextAnchor.UpperLeft;
             Text.WordWrap = true;

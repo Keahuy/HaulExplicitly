@@ -14,7 +14,7 @@ namespace HaulExplicitly
 
         public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
         {
-            return HaulExplicitly.GetManager(pawn).haulables;
+            return HaulExplicitly.GetManager(pawn).Haulables;
         }
 
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
@@ -46,7 +46,7 @@ namespace HaulExplicitly
             //((JobDriver_HaulExplicitly)job.GetCachedDriver(pawn)).init();
             job.count = count;
             job.targetQueueA = new List<LocalTargetInfo>(
-                new LocalTargetInfo[] { new IntVec3(posting.id, dest_space_available, 0) });
+                new LocalTargetInfo[] { new IntVec3(posting.ID, dest_space_available, 0) });
             job.targetQueueB = new List<LocalTargetInfo>(dests.Skip(1).Take(dests.Count - 1)
                 .Select(c => new LocalTargetInfo(c)));
             job.haulOpportunisticDuplicates = true;
@@ -91,31 +91,28 @@ namespace HaulExplicitly
             get
             {
                 if (_record == null)
-                    init();
+                    Init();
                 return _record;
             }
             private set { _record = value; }
         }
 
-        private HaulExplicitlyPosting _posting;
+        private HaulExplicitlyPosting? _posting;
 
         public HaulExplicitlyPosting posting
         {
             get
             {
                 if (_posting == null)
-                    init();
+                    Init();
                 return _posting;
             }
             private set { _posting = value; }
         }
 
-        public int posting_id
-        {
-            get { return job.targetQueueA[0].Cell.x; }
-        }
+        public int PostingID => job.targetQueueA[0].Cell.x;
 
-        public int dest_space_available
+        public int DestinationSpaceAvailable
         {
             get { return job.targetQueueA[0].Cell.y; }
             set
@@ -125,10 +122,10 @@ namespace HaulExplicitly
             }
         }
 
-        public void init()
+        public void Init()
         {
             Thing targetItem = job.targetA.Thing;
-            _posting = HaulExplicitly.GetManager(targetItem.MapHeld).postings[posting_id];
+            _posting = HaulExplicitly.GetManager(targetItem.MapHeld).Postings[PostingID];
             _record = _posting.RecordWithItem(targetItem);
         }
 
@@ -154,13 +151,12 @@ namespace HaulExplicitly
                 Job job = toil.actor.CurJob;
                 Thing thing = job.GetTarget(TargetIndex.A).Thing;
                 IntVec3 cell = job.GetTarget(TargetIndex.B).Cell;
-                List<Thing> items_in_cell = HaulExplicitlyPosting.GetItemsIfValidItemSpot(
-                    toil.actor.Map, cell);
-                if (items_in_cell == null)
+                List<Thing> itemsInCell = HaulExplicitlyPosting.GetItemsIfValidItemSpot(toil.actor.Map, cell);
+                if (itemsInCell == null)
                     return true;
-                if (items_in_cell.Count == 0)
+                if (itemsInCell.Count == 0)
                     return false;
-                if (items_in_cell.Count == 1 && thing.CanStackWith(items_in_cell.First()))
+                if (itemsInCell.Count == 1 && thing.CanStackWith(itemsInCell.First()))
                     return false;
                 return true;
             });
@@ -213,7 +209,7 @@ namespace HaulExplicitly
                 {
                     Thing prospect = null;
                     int best_dist = 999;
-                    foreach (Thing item in driver.record.items.Where(i => i.Spawned && WorkGiver_HaulExplicitly.CanGetThing(actor, i, false)))
+                    foreach (Thing item in driver.record.Items.Where(i => i.Spawned && WorkGiver_HaulExplicitly.CanGetThing(actor, i, false)))
                     {
                         IntVec3 offset = item.Position - actor.Position;
                         int dist = Math.Abs(offset.x) + Math.Abs(offset.z);
@@ -232,9 +228,9 @@ namespace HaulExplicitly
                         return;
                     var destInfo = DeliverableDestinations.For(prospect, actor, driver.posting);
                     List<IntVec3> dests = destInfo.RequestSpaceForItemAmount(
-                        Math.Max(0, space_request - driver.dest_space_available));
+                        Math.Max(0, space_request - driver.DestinationSpaceAvailable));
                     int new_dest_space = destInfo.FreeSpaceInCells(dests);
-                    var count = Math.Min(space_request, driver.dest_space_available + new_dest_space);
+                    var count = Math.Min(space_request, driver.DestinationSpaceAvailable + new_dest_space);
                     if (count < 1)
                         return;
 
@@ -272,8 +268,8 @@ namespace HaulExplicitly
                 int carryBeforeCount = carriedItem.stackCount;
                 Job job = actor.CurJob;
                 var driver = (JobDriver_HaulExplicitly)actor.jobs.curDriver;
-                driver.init(); //this fixes problems
-                Map map = driver.posting.map;
+                driver.Init(); //this fixes problems
+                Map map = driver.posting.Map;
                 IntVec3 dest = job.GetTarget(destInd).Cell;
                 Thing floorItem = null;
                 foreach (Thing t in dest.GetThingList(map))
@@ -289,14 +285,14 @@ namespace HaulExplicitly
                 if (done)
                 {
                     job.count = 0;
-                    driver.record.movedQuantity += carryBeforeCount;
+                    driver.record.MovedQuantity += carryBeforeCount;
                     driver.posting.TryRemoveItem(placedThing);
                 }
                 else
                 {
                     var placedCount = carryBeforeCount - carriedItem.stackCount;
                     job.count -= placedCount;
-                    driver.record.movedQuantity += placedCount;
+                    driver.record.MovedQuantity += placedCount;
                     var destQueue = job.GetTargetQueue(destInd);
                     if (nextToilIfNotDonePlacing != null && destQueue.Count != 0)
                     {
