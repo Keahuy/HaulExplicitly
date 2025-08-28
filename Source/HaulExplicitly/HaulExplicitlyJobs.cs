@@ -27,29 +27,28 @@ namespace HaulExplicitly
             if (!CanGetThing(pawn, t, forced))
                 return null;
 
-            //plan count and dests
+            //plan count and destinations
             HaulExplicitlyPosting posting = HaulExplicitly.GetManager(t).PostingWithItem(t);
             if (posting == null)
                 return null;
-            int space_request = AmountPawnWantsToPickUp(pawn, t, posting);
-            var destInfo = DeliverableDestinations.For(t, pawn, posting);
-            List<IntVec3> dests = destInfo.RequestSpaceForItemAmount(space_request);
-            int dest_space_available = destInfo.FreeSpaceInCells(dests);
-            var count = Math.Min(space_request, dest_space_available);
+            int spaceRequest = AmountPawnWantsToPickUp(pawn, t, posting);
+            var destinationsInfo = DeliverableDestinations.For(t, pawn, posting);
+            List<IntVec3> destinations = destinationsInfo.RequestSpaceForItemAmount(spaceRequest);
+            int destinationSpaceAvailable = destinationsInfo.FreeSpaceInCells(destinations);
+            var count = Math.Min(spaceRequest, destinationSpaceAvailable);
             if (count < 1)
                 return null;
 
             //make job
-            JobDef JobDefOfHaulExplicitly =
-                (JobDef)(GenDefDatabase.GetDef(typeof(JobDef), "HaulExplicitlyHaul"));
-            Job job = new Job(JobDefOfHaulExplicitly, t, dests.First());
-            //((JobDriver_HaulExplicitly)job.GetCachedDriver(pawn)).init();
-            job.count = count;
-            job.targetQueueA = new List<LocalTargetInfo>(
-                new LocalTargetInfo[] { new IntVec3(posting.ID, dest_space_available, 0) });
-            job.targetQueueB = new List<LocalTargetInfo>(dests.Skip(1).Take(dests.Count - 1)
-                .Select(c => new LocalTargetInfo(c)));
-            job.haulOpportunisticDuplicates = true;
+            JobDef jobDefOfHaulExplicitly = (JobDef)GenDefDatabase.GetDef(typeof(JobDef), "HaulExplicitlyHaul");
+            Job job = new Job(jobDefOfHaulExplicitly, t, destinations.First())
+            {
+                //((JobDriver_HaulExplicitly)job.GetCachedDriver(pawn)).init();
+                count = count,
+                targetQueueA = new List<LocalTargetInfo>([new IntVec3(posting.ID, destinationSpaceAvailable, 0)]),
+                targetQueueB = new List<LocalTargetInfo>(destinations.Skip(1).Take(destinations.Count - 1).Select(c => new LocalTargetInfo(c))),
+                haulOpportunisticDuplicates = true
+            };
             return job;
         }
 
@@ -208,29 +207,28 @@ namespace HaulExplicitly
                 if (actor.CurJob.haulOpportunisticDuplicates)
                 {
                     Thing prospect = null;
-                    int best_dist = 999;
+                    int bestDist = 999;
                     foreach (Thing item in driver.record.Items.Where(i => i.Spawned && WorkGiver_HaulExplicitly.CanGetThing(actor, i, false)))
                     {
                         IntVec3 offset = item.Position - actor.Position;
                         int dist = Math.Abs(offset.x) + Math.Abs(offset.z);
-                        if (dist < best_dist && dist < 7)
+                        if (dist < bestDist && dist < 7)
                         {
                             prospect = item;
-                            best_dist = dist;
+                            bestDist = dist;
                         }
                     }
 
                     if (prospect == null)
                         return;
-                    int space_request = WorkGiver_HaulExplicitly
+                    int spaceRequest = WorkGiver_HaulExplicitly
                         .AmountPawnWantsToPickUp(actor, prospect, driver.posting);
-                    if (space_request == 0)
+                    if (spaceRequest == 0)
                         return;
                     var destInfo = DeliverableDestinations.For(prospect, actor, driver.posting);
-                    List<IntVec3> dests = destInfo.RequestSpaceForItemAmount(
-                        Math.Max(0, space_request - driver.DestinationSpaceAvailable));
-                    int new_dest_space = destInfo.FreeSpaceInCells(dests);
-                    var count = Math.Min(space_request, driver.DestinationSpaceAvailable + new_dest_space);
+                    List<IntVec3> destinations = destInfo.RequestSpaceForItemAmount(Math.Max(0, spaceRequest - driver.DestinationSpaceAvailable));
+                    int newDestinationSpace = destInfo.FreeSpaceInCells(destinations);
+                    var count = Math.Min(spaceRequest, driver.DestinationSpaceAvailable + newDestinationSpace);
                     if (count < 1)
                         return;
 
@@ -238,14 +236,14 @@ namespace HaulExplicitly
                     actor.Reserve(prospect, job);
                     job.SetTarget(haulxItemInd, prospect);
                     job.SetTarget(TargetIndex.C, prospect.Position);
-                    foreach (var dest in dests)
+                    foreach (var dest in destinations)
                     {
                         actor.Reserve(dest, job);
                         job.targetQueueB.Add(dest);
                     }
 
                     job.count += count;
-                    driver.JumpToToil(nextToilIfBeingOpportunistic);
+                    /*driver.JumpToToil(nextToilIfBeingOpportunistic);*/
                 }
             };
             return toil;
@@ -270,9 +268,9 @@ namespace HaulExplicitly
                 var driver = (JobDriver_HaulExplicitly)actor.jobs.curDriver;
                 driver.Init(); //this fixes problems
                 Map map = driver.posting.Map;
-                IntVec3 dest = job.GetTarget(destInd).Cell;
+                IntVec3 destination  = job.GetTarget(destInd).Cell;
                 Thing floorItem = null;
-                foreach (Thing t in dest.GetThingList(map))
+                foreach (Thing t in destination .GetThingList(map))
                 {
                     if (t.def.EverHaulable && t.CanStackWith(carriedItem))
                         floorItem = t;
@@ -280,7 +278,7 @@ namespace HaulExplicitly
 
                 //put it down now
                 Thing placedThing; //gets set if done
-                bool done = actor.carryTracker.TryDropCarriedThing(dest, ThingPlaceMode.Direct, out placedThing);
+                bool done = actor.carryTracker.TryDropCarriedThing(destination , ThingPlaceMode.Direct, out placedThing);
 
                 if (done)
                 {
@@ -317,7 +315,7 @@ namespace HaulExplicitly
                                                                       + carriedItem + " near " + actor.Position
                                                                       + ". Destroying. This should never happen!");
                             carriedItem.Destroy(DestroyMode.Vanish);
-                            actor.jobs.EndCurrentJob(JobCondition.Incompletable);
+                            /*actor.jobs.EndCurrentJob(JobCondition.Incompletable);*/
                         }
                     }
                 }

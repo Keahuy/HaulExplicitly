@@ -690,6 +690,7 @@ namespace HaulExplicitly
                 {
                     FreeCells.Add(cell);
                 }
+
                 try
                 {
                     Thing itemInCell = itemsInCell.Single();
@@ -762,25 +763,29 @@ namespace HaulExplicitly
         public int FreeSpaceInCells(IEnumerable<IntVec3> cells)
         {
             int space = 0;
-            foreach (IntVec3 c in cells)
+            foreach (var c in cells)
             {
                 if (!PartialCells.Contains(c) && !FreeCells.Contains(c))
                 {
                     throw new ArgumentException("Specified cells don't exist in DeliverableDestinations.");
                 }
 
-                try
+                var thingsAtCell = Posting.Map.thingGrid.ThingsAt(c).ToList();
+                if (!thingsAtCell.Any())
                 {
-                    var item = Posting.Map.thingGrid.ThingsAt(c).Where(t => t.def.EverStorable(false)).First();
-                    space += _thing.def.stackLimit - item.stackCount;
+                    return space += _thing.def.stackLimit;
                 }
-                catch
+
+                if (thingsAtCell.Any(t => t.def.category == ThingCategory.Plant))
                 {
-                    space += _thing.def.stackLimit;
+                    return space += _thing.def.stackLimit;
                 }
+
+                var item = thingsAtCell.First(t => t.def.EverStorable(false));
+                return space += _thing.def.stackLimit - item.stackCount;
             }
 
-            return space;
+            return 0;
         }
 
         private static IEnumerable<IntVec3> ProximityOrdering(IntVec3 center, IEnumerable<IntVec3> cells)

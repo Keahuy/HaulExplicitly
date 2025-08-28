@@ -16,6 +16,7 @@ public class Designator_HaulExplicitly : Designator
     public static void UpdateJob()
     {
         List<object> objects = Find.Selector.SelectedObjects;
+        // 获取所有需要搬运的物品
         _prospectiveJob = new HaulExplicitlyPosting(objects);
     }
 
