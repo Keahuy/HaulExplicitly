@@ -171,7 +171,7 @@ namespace HaulExplicitly
     {
         public static Toil PickUpThing(TargetIndex haulxItemInd, Toil nextToilIfBeingOpportunistic)
         {
-            Toil toil = new Toil();
+            Toil toil = ToilMaker.MakeToil("PickUpThing");
             toil.initAction = delegate
             {
                 Pawn actor = toil.actor;
@@ -251,7 +251,7 @@ namespace HaulExplicitly
 
         public static Toil PlaceHauledThingAtDest(TargetIndex destInd, Toil nextToilIfNotDonePlacing)
         {
-            Toil toil = new Toil();
+            Toil toil = ToilMaker.MakeToil("PlaceHauledThingAtDest");
             toil.initAction = delegate
             {
                 //get all the vars

@@ -13,28 +13,18 @@ namespace HaulExplicitly
         //data
         private System.WeakReference _parentPosting;
 
-        /*public HaulExplicitlyPosting parentPosting
+        public HaulExplicitlyPosting ParentPosting
         {
             get
             {
-                try
-                {
-                    return (HaulExplicitlyPosting)_parentPosting.Target;
-                }
-                catch
-                {
-                    Log.Error("test");
-                }
-
-                foreach (var posting in from mgr in HaulExplicitly.GetManagers() from posting in mgr.postings.Values where posting.inventory.Contains(this) select posting)
+                if (_parentPosting != null) return (HaulExplicitlyPosting)_parentPosting.Target;// 弱引用，Save and Load 存档后会被清理掉，所以要判断是否为空
+                foreach (var posting in from mgr in HaulExplicitly.GetManagers() from posting in mgr.Postings.Values where posting.Inventory.Contains(this) select posting)
                 {
                     return (HaulExplicitlyPosting)(_parentPosting = new WeakReference(posting)).Target;
                 }
-                throw new NullReferenceException("Orphaned HaulExplicitlyInventoryRecord");
+                return (HaulExplicitlyPosting)_parentPosting.Target;
             }
-        }*/
-
-        public HaulExplicitlyPosting ParentPosting => (HaulExplicitlyPosting)_parentPosting.Target;
+        }
 
         public List<Thing> Items = new List<Thing>();
         private ThingDef _itemDef;
@@ -117,6 +107,11 @@ namespace HaulExplicitly
         }
 
         //methods
+
+        public HaulExplicitlyInventoryRecord()
+        {
+            // 防报错：SaveableFromNode exception: System.MissingMethodException: Constructor on type 'HaulExplicitly.HaulExplicitlyInventoryRecord' not found.   
+        }
 
         public HaulExplicitlyInventoryRecord(Thing initial, HaulExplicitlyPosting parentPosting)
         {
@@ -239,8 +234,12 @@ namespace HaulExplicitly
 
     public class HaulExplicitlyPosting : IExposable
     {
+        public HaulExplicitlyPosting()
+        {
+        }
+
         private int _id;
-        private Map _map;
+        private Map? _map;
 
         public int ID
         {
