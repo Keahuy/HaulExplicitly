@@ -3,7 +3,7 @@ using Verse;
 
 namespace HaulExplicitly;
 
-public class Notice : MapComponent
+/*public class Notice : MapComponent
 {
     private bool _flag = false;
 
@@ -26,4 +26,4 @@ public class Notice : MapComponent
         base.ExposeData();
         Scribe_Values.Look(ref _flag, "IsUpdateInfoHasShow", false);
     }
-}
+}*/

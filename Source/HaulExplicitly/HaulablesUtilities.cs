@@ -23,6 +23,7 @@ namespace HaulExplicitly
         {
             if (!t.def.EverHaulable)
                 return false;
+            if (t.def.thingCategories == null) return t.def.alwaysHaulable == t.HasHaulabilityToggled();
             if (t.def.thingCategories.Any(def => def.defName == "StoneChunks"))
             {
                 return false;

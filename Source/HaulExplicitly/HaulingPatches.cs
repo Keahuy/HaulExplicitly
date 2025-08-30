@@ -216,7 +216,7 @@ namespace HaulExplicitly
             toil.initAction = delegate
             {
                 Designation des = __instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing.MapHeld.designationManager.DesignationOn(__instance.GetActor().CurJob.GetTarget(TargetIndex.A).Thing, DesignationDefOf.Haul);
-                if (des !=null)
+                if (des != null)
                 {
                     __instance.GetActor().Map.designationManager.RemoveDesignation(des);
                 }
